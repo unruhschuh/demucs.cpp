@@ -11,3 +11,6 @@
 [submodule "vendor/googletest"]
 	path = vendor/googletest
 	url = https://github.com/google/googletest
+[submodule "vendor/OpenBLAS"]
+	path = vendor/OpenBLAS
+	url = https://github.com/OpenMathLib/OpenBLAS.git
