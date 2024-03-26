@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+#set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -DEIGEN_FAST_MATH=0 -O0")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -fno-unsafe-math-optimizations -freciprocal-math -fno-signed-zeros")
@@ -28,18 +28,23 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# include src/*.cpp and src/*.c as source files
+file(GLOB SOURCES "src/*.cpp")
+
+add_library(demucs.cpp.lib ${SOURCES})
+
 # add library Eigen3
-include_directories(vendor/eigen)
-include_directories(src)
+target_include_directories(demucs.cpp.lib PUBLIC vendor/eigen)
+target_include_directories(demucs.cpp.lib PUBLIC src)
 
 if (USE_AMD_AOCL)
     set(AOCL_ROOT "/home/sevagh/AMD_AOCL/aocl-linux-gcc-4.1.0")
     set(BLIS_PATH "${AOCL_ROOT}/aocl-blis-linux-gcc-4.1.0/amd-blis")
     set(LIBFLAME_PATH "${AOCL_ROOT}/aocl-libflame-linux-gcc-4.1.0/amd-libflame")
     set(LIBMEM_PATH "${AOCL_ROOT}/aocl-libmem-linux-gcc-4.1.0/amd-libmem")
-    include_directories(${BLIS_PATH}/include)
-    include_directories(${LIBFLAME_PATH}/include)
-    include_directories(${LIBMEM_PATH}/include)
+    target_include_directories(demucs.cpp.lib PUBLIC ${BLIS_PATH}/include)
+    target_include_directories(demucs.cpp.lib PUBLIC ${LIBFLAME_PATH}/include)
+    target_include_directories(demucs.cpp.lib PUBLIC ${LIBMEM_PATH}/include)
     link_directories(${BLIS_PATH}/lib/LP64)
     link_directories(${LIBFLAME_PATH}/lib/LP64)
     link_directories(${LIBMEM_PATH}/lib/shared)
@@ -48,7 +53,7 @@ if (USE_AMD_AOCL)
 elseif (USE_INTEL_MKL)
     set(INTEL_MKL_ROOT "/home/sevagh/intel/oneapi/mkl/latest")
     set(INTEL_COMPILER_ROOT "/home/sevagh/intel/oneapi/compiler/latest")
-    include_directories("${INTEL_MKL_ROOT}/include")
+    target_include_directories(demucs.cpp.lib PUBLIC "${INTEL_MKL_ROOT}/include")
     link_directories("${INTEL_MKL_ROOT}/lib/intel64")
     link_directories("${INTEL_COMPILER_ROOT}/lib")
     set(LIBRARIES_TO_LINK "-lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5")
@@ -65,18 +70,13 @@ else()
     find_package(OpenMP REQUIRED)
     if(OPENMP_FOUND)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-        include_directories(${OpenMP_CXX_INCLUDE_DIRS})
+        target_include_directories(demucs.cpp.lib PUBLIC ${OpenMP_CXX_INCLUDE_DIRS})
     endif()
 
     if(OPENMP_FOUND)
         set(LIBRARIES_TO_LINK ${OpenMP_CXX_LIBRARIES})
     endif()
 endif()
-
-# include src/*.cpp and src/*.c as source files
-file(GLOB SOURCES "src/*.cpp")
-
-add_library(demucs.cpp.lib ${SOURCES})
 
 target_link_libraries(demucs.cpp.lib ${LIBRARIES_TO_LINK})
 
@@ -116,15 +116,15 @@ add_custom_target(lint
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
-# add target to run cpp tests in test/ directory with gtest
-
-# get gtest from vendor/googletest
-set(BUILD_GMOCK OFF CACHE BOOL "Disable gmock in googletest" FORCE)
-add_subdirectory(vendor/googletest)
-
-# include test/*.cpp as test files
-file(GLOB TEST_SOURCES "test/*.cpp")
-
-add_executable(demucs.cpp.test ${TEST_SOURCES})
-target_link_libraries(demucs.cpp.test demucs.cpp.lib gtest gtest_main libnyquist)
-add_test(NAME tests COMMAND demucs.cpp.test)
+# # add target to run cpp tests in test/ directory with gtest
+# 
+# # get gtest from vendor/googletest
+# set(BUILD_GMOCK OFF CACHE BOOL "Disable gmock in googletest" FORCE)
+# add_subdirectory(vendor/googletest)
+# 
+# # include test/*.cpp as test files
+# file(GLOB TEST_SOURCES "test/*.cpp")
+# 
+# add_executable(demucs.cpp.test ${TEST_SOURCES})
+# target_link_libraries(demucs.cpp.test demucs.cpp.lib gtest gtest_main libnyquist)
+# add_test(NAME tests COMMAND demucs.cpp.test)

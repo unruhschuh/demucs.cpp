@@ -52,14 +52,6 @@ bool demucscpp::load_demucs_model(const std::string &model_file,
 {
     my_fprintf(stderr, "%s: loading model\n", __func__);
 
-    // compute t_start_us using C++ std::chrono
-    const auto t_start_us =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch())
-            .count();
-
-    std::cout << "Loading model_file... " << std::endl;
-
     FILE *f = fopen(model_file.c_str(), "rb");
     if (!f)
     {
@@ -67,6 +59,32 @@ bool demucscpp::load_demucs_model(const std::string &model_file,
                    model_file.c_str());
         return false;
     }
+
+    bool ret = load_demucs_model(f, model);
+
+    fclose(f);
+
+    return ret;
+}
+
+bool demucscpp::load_demucs_model(FILE *f,
+                                  struct demucs_model *model)
+{
+    my_fprintf(stderr, "%s: loading model\n", __func__);
+
+    // compute t_start_us using C++ std::chrono
+    const auto t_start_us =
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
+
+    std::cout << "Loading model_file... " << std::endl;
+    if (!f)
+    {
+        return false;
+    }
+
+    fseek(f, 0, SEEK_SET);
 
     // verify magic
     uint32_t magic;
@@ -1071,8 +1089,6 @@ bool demucscpp::load_demucs_model(const std::string &model_file,
         total_size += loaded_size;
         n_loaded++;
     }
-
-    fclose(f);
 
     // compute finish time in microseconds using std::chrono
 

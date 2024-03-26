@@ -651,6 +651,9 @@ struct demucs_segment_buffers
 bool load_demucs_model(const std::string &model_dir,
                        struct demucs_model *model);
 
+bool load_demucs_model(FILE * f,
+                       struct demucs_model *model);
+
 const float SEGMENT_LEN_SECS = 7.8;      // 8 seconds, the demucs chunk size
 const float SEGMENT_OVERLAP_SECS = 0.25; // 0.25 overlap
 const float MAX_SHIFT_SECS = 0.5;        // max shift
